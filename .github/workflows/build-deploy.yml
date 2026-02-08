@@ -43,9 +43,14 @@ jobs:
           # Pass secrets as environment variables to the script
           envs: DOCKERHUB_TOKEN,SSH_PASSWORD
           script: |
-              # Export env vars from the passed arguments for use in script
+              # Export env vars from the passed arguments
               export DOCKERHUB_TOKEN=$DOCKERHUB_TOKEN
               export SSH_PASSWORD=$SSH_PASSWORD
+              
+              if [ -z "$SSH_PASSWORD" ]; then
+                echo "Error: SSH_PASSWORD is empty. Check GitHub Secrets."
+                exit 1
+              fi
               
               # Create directory if it doesn't exist
               mkdir -p ~/windsurf_net
@@ -64,14 +69,21 @@ jobs:
                 git pull origin main
               fi
               
-              # Login to Docker Hub on the server (in case repo is private)
-              echo "$DOCKERHUB_TOKEN" > ~/docker_token.txt
-              # Run the pipe completely inside the sudo environment
-              echo "$SSH_PASSWORD" | sudo -S bash -c "cat /home/saurabh/docker_token.txt | docker login -u saurabh7876 --password-stdin"
-              rm ~/docker_token.txt
-
-              # Pull the latest images defined in docker-compose
-              echo "$SSH_PASSWORD" | sudo -S docker compose pull laravel
+              # Create temporary credential files for robust input handling
+              echo "$DOCKERHUB_TOKEN" > docker_token.txt
+              echo "$SSH_PASSWORD" > sudo_pass.txt
+              chmod 600 docker_token.txt sudo_pass.txt
               
-              # Restart services with new configuration/image
-              echo "$SSH_PASSWORD" | sudo -S docker compose up -d
+              # Login to Docker Hub
+              # sudo -S reads password from stdin (redirected from sudo_pass.txt)
+              # bash -c runs command that reads token from file
+              sudo -S bash -c "cat docker_token.txt | docker login -u saurabh7876 --password-stdin" < sudo_pass.txt
+
+              # Pull the latest images
+              sudo -S docker compose pull laravel < sudo_pass.txt
+              
+              # Restart services
+              sudo -S docker compose up -d < sudo_pass.txt
+              
+              # Cleanup credentials immediately
+              rm docker_token.txt sudo_pass.txt
