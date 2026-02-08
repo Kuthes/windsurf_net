@@ -60,7 +60,7 @@ jobs:
               fi
               
               # Pull the latest images defined in docker-compose
-              docker compose pull laravel
+              sudo docker compose pull laravel
               
               # Restart services with new configuration/image
-              docker compose up -d
+              sudo docker compose up -d
