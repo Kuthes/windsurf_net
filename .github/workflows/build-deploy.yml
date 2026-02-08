@@ -40,8 +40,14 @@ jobs:
           username: saurabh
           password: ${{ secrets.SSH_PASSWORD }}
           port: 51826
+          # Pass secrets as environment variables to the script
+          envs: DOCKERHUB_TOKEN,SSH_PASSWORD
           script: |
-              # Create directory if it doesn't exist (first run precaution)
+              # Export env vars from the passed arguments for use in script
+              export DOCKERHUB_TOKEN=$DOCKERHUB_TOKEN
+              export SSH_PASSWORD=$SSH_PASSWORD
+              
+              # Create directory if it doesn't exist
               mkdir -p ~/windsurf_net
               cd ~/windsurf_net
               
@@ -51,7 +57,6 @@ jobs:
                 git init
                 git remote add origin https://github.com/Kuthes/windsurf_net.git
                 git fetch origin
-                # Force checkout to ensure repo state, but won't touch untracked files like .env
                 git checkout -f main
                 git branch -u origin/main main
               else
@@ -59,8 +64,11 @@ jobs:
                 git pull origin main
               fi
               
+              # Login to Docker Hub on the server (in case repo is private)
+              echo "$DOCKERHUB_TOKEN" | echo "$SSH_PASSWORD" | sudo -S docker login -u saurabh7876 --password-stdin
+
               # Pull the latest images defined in docker-compose
-              sudo docker compose pull laravel
+              echo "$SSH_PASSWORD" | sudo -S docker compose pull laravel
               
               # Restart services with new configuration/image
-              sudo docker compose up -d
+              echo "$SSH_PASSWORD" | sudo -S docker compose up -d
