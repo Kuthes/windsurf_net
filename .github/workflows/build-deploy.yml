@@ -65,9 +65,9 @@ jobs:
               fi
               
               # Login to Docker Hub on the server (in case repo is private)
-              # Workaround for sudo reading stdin: Write token to file, redirect input from file
               echo "$DOCKERHUB_TOKEN" > ~/docker_token.txt
-              echo "$SSH_PASSWORD" | sudo -S docker login -u saurabh7876 --password-stdin < ~/docker_token.txt
+              # Run the pipe completely inside the sudo environment
+              echo "$SSH_PASSWORD" | sudo -S bash -c "cat /home/saurabh/docker_token.txt | docker login -u saurabh7876 --password-stdin"
               rm ~/docker_token.txt
 
               # Pull the latest images defined in docker-compose
