@@ -45,10 +45,17 @@ jobs:
               mkdir -p ~/windsurf_net
               cd ~/windsurf_net
               
-              # Initialize git if not present, otherwise pull
+              # Initialize git if not present
               if [ ! -d ".git" ]; then
-                git clone https://github.com/Kuthes/windsurf_net.git .
+                echo "Initializing git..."
+                git init
+                git remote add origin https://github.com/Kuthes/windsurf_net.git
+                git fetch origin
+                # Force checkout to ensure repo state, but won't touch untracked files like .env
+                git checkout -f main
+                git branch -u origin/main main
               else
+                echo "Pulling latest..."
                 git pull origin main
               fi
               
