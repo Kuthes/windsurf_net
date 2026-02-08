@@ -15,7 +15,7 @@ services:
     networks:
       - hotspot_net
     ports:
-      - "3306:3306"
+      - "3307:3306"
     healthcheck:
       test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
       timeout: 20s
@@ -87,7 +87,7 @@ services:
     networks:
       - hotspot_net
     ports:
-      - "8080:80"
+      - "8081:80"
 
 volumes:
   mysql_data:
