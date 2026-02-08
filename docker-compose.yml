@@ -1,7 +1,7 @@
 services:
-  # MySQL Database
+  # MySQL Database (Switched to MariaDB for CPU compatibility)
   mysql:
-    image: mysql:8.0
+    image: mariadb:10.6
     container_name: sentinel_mysql
     restart: unless-stopped
     environment:
