@@ -47,6 +47,7 @@ services:
     build:
       context: ./src
       dockerfile: Dockerfile
+    image: saurabh7876/sentinel-laravel:latest
     container_name: sentinel_laravel
     restart: unless-stopped
     depends_on:

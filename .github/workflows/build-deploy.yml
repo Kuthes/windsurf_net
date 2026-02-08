@@ -41,16 +41,19 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           port: 51826
           script: |
-              # Stop existing containers
-              docker stop sentinel_laravel || true
-              docker rm sentinel_laravel || true
+              # Create directory if it doesn't exist (first run precaution)
+              mkdir -p ~/windsurf_net
+              cd ~/windsurf_net
               
-              # Pull the latest image
-              docker pull saurabh7876/sentinel-laravel:latest
+              # Initialize git if not present, otherwise pull
+              if [ ! -d ".git" ]; then
+                git clone https://github.com/Kuthes/windsurf_net.git .
+              else
+                git pull origin main
+              fi
               
-              # Run the new container
-              docker run -d \
-                --name sentinel_laravel \
-                --restart unless-stopped \
-                --network host \
-                saurabh7876/sentinel-laravel:latest
+              # Pull the latest images defined in docker-compose
+              docker compose pull laravel
+              
+              # Restart services with new configuration/image
+              docker compose up -d
