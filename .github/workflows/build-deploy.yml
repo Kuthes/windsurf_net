@@ -1,0 +1,56 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        # Add DOCKERHUB_TOKEN to secrets
+        uses: docker/login-action@v3
+        with:
+          username: saurabh7876
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push Laravel image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./src
+          file: ./src/Dockerfile
+          push: true
+          tags: saurabh7876/sentinel-laravel:latest
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to Server
+        uses: appleboy/ssh-action@master
+        with:
+          host: 114.143.224.99
+          username: saurabh
+          password: ${{ secrets.SSH_PASSWORD }}
+          port: 51826
+          script: |
+              # Stop existing containers
+              docker stop sentinel_laravel || true
+              docker rm sentinel_laravel || true
+              
+              # Pull the latest image
+              docker pull saurabh7876/sentinel-laravel:latest
+              
+              # Run the new container
+              docker run -d \
+                --name sentinel_laravel \
+                --restart unless-stopped \
+                --network host \
+                saurabh7876/sentinel-laravel:latest

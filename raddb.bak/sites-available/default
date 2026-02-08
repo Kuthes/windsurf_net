@@ -1,0 +1,76 @@
+server default {
+    listen {
+        type = auth
+        ipaddr = *
+        port = 1812
+    }
+    
+    listen {
+        type = acct
+        ipaddr = *
+        port = 1813
+    }
+    
+    authorize {
+        preprocess
+        chap
+        mschap
+        eap
+        suffix
+        sql
+        expiration
+        logintime
+        pap
+    }
+    
+    authenticate {
+        Auth-Type PAP {
+            pap
+        }
+        Auth-Type CHAP {
+            chap
+        }
+        Auth-Type MS-CHAP {
+            mschap
+        }
+        eap
+    }
+    
+    preacct {
+        preprocess
+        acct_unique
+        suffix
+        files
+    }
+    
+    accounting {
+        detail
+        unix
+        radutmp
+        sql
+        exec
+        attr_filter.accounting_response
+    }
+    
+    session {
+        radutmp
+        sql
+    }
+    
+    post-auth {
+        Post-Auth-Type ACCEPT {
+            sql
+        }
+        Post-Auth-Type REJECT {
+            sql
+            attr_filter.access_reject
+        }
+    }
+    
+    pre-proxy {
+    }
+    
+    post-proxy {
+        eap
+    }
+}
